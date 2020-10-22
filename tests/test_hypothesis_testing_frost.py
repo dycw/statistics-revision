@@ -6,6 +6,7 @@ from numpy import mean
 from numpy import sqrt
 from numpy import std
 from pandas import read_csv
+from pytest import skip
 from scipy.stats import f_oneway
 from scipy.stats import sem
 from scipy.stats import t
@@ -111,7 +112,7 @@ def test_good_side_of_high_p_values_p97() -> None:
     assert isclose(ttest_ind(sr_3A, sr_3B).pvalue, 0.042, atol=1e-3)
 
 
-def test_one_way_anova_p200() -> None:
+def test_1_way_anova_p200() -> None:
     path = BOOK_ROOT.joinpath("OneWayExample.csv")
     df = read_csv(path)
     df_2 = df.assign(n=df.index % 10).pivot(
@@ -138,7 +139,7 @@ def test_one_way_anova_p200() -> None:
     assert isclose(result.loc[1, "MS"], 4.402, atol=1e-3)
 
 
-def test_two_way_anova_p227() -> None:
+def test_2_way_anova_p227() -> None:
     path = BOOK_ROOT.joinpath("Two-WayANOVAExamples.csv")
     df = read_csv(path)
     result = df.anova(dv="Income", between=["Gender", "Major"], detailed=True)
@@ -160,3 +161,15 @@ def test_two_way_anova_p227() -> None:
     assert result.loc[3, "Source"] == "Residual"
     assert isclose(result.loc[3, "SS"], 2620748173)
     assert result.loc[3, "DF"] == 114
+
+
+def test_1_variance_test_p239() -> None:
+    path = BOOK_ROOT.joinpath("ProductStrength.csv")
+    _ = read_csv(path)
+    skip()
+
+
+def test_2_variance_test_p242() -> None:
+    path = BOOK_ROOT.joinpath("VariancesTest.csv")
+    _ = read_csv(path)
+    skip()
