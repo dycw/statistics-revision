@@ -7,6 +7,7 @@ from numpy import sqrt
 from numpy import std
 from pandas import read_csv
 from pytest import skip
+from scipy.stats import binom_test
 from scipy.stats import f_oneway
 from scipy.stats import levene
 from scipy.stats import sem
@@ -178,6 +179,11 @@ def test_2_variance_test_p242() -> None:
     result = levene(X, Y)
     assert isclose(result.statistic, 27.04, atol=1e-2)
     assert isclose(result.pvalue, 0.0, atol=1e-3)
+
+
+def test_1_proportion_test_p282() -> None:
+    pvalue = binom_test(80, n=100, p=0.7)
+    assert isclose(pvalue, 0.029, atol=1e-3)
 
 
 def test_2_proportions_test_p285() -> None:
