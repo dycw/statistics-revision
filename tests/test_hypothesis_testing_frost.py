@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from numpy import isclose
 from numpy import mean
+from numpy import sqrt
 from numpy import std
+from numpy import var
 from pandas import read_csv
 from scipy.stats import sem
 from scipy.stats import t
@@ -45,7 +47,7 @@ def test_1_sample_t_test_example_p47() -> None:
         assert isclose(ci, (57.87, 70.45), atol=1e-2).all()
 
 
-def test_2_sample_t_test_example_p50() -> None:
+def test_2_sample_t_test_example_p51() -> None:
     path = BOOK_ROOT.joinpath("t-TestExamples.csv")
     df = read_csv(path)
     X = df["Method A"]
@@ -53,3 +55,13 @@ def test_2_sample_t_test_example_p50() -> None:
     res = ttest_ind(X, Y)
     assert isclose(res.statistic, -4.08, atol=1e-2)
     assert isclose(res.pvalue, 0.0, atol=1e-3)
+    centre = mean(X) - mean(Y)
+    n_x, n_y = len(X), len(Y)
+    v_x, v_y = var(X, ddof=1), var(Y, ddof=1)
+    ddof = n_x + n_y - 2  # degrees of freedom
+    s = sqrt(((n_x - 1) * v_x + (n_y - 1) * v_y) / ddof)
+    alpha = 0.05
+    t_crit = t.ppf(1.0 - alpha / 2.0, ddof)  # t-critical value for 95% CI
+    width = t_crit * sqrt(1.0 / n_x + 1 / n_y) * s
+    ci = (centre - width, centre + width)
+    assert isclose(ci, (-19.89, -6.59), atol=1e-2).all()
