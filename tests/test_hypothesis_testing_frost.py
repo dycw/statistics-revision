@@ -84,3 +84,27 @@ def test_paired_t_test_example_p55() -> None:
     width = t.ppf(1.0 - alpha / 2.0, n - 1) * std(X - Y, ddof=1) / sqrt(n)
     ci = (centre - width, centre + width)
     assert isclose(ci, (-16.96, -4.59), atol=1e-2).all()
+
+
+def test_two_sample_t_ttest_and_ci_p66() -> None:
+    path = BOOK_ROOT.joinpath("DifferenceMeans.csv")
+    df = read_csv(path)
+    X = df["Strength B"]
+    Y = df["Strength A"]
+    res = ttest_ind(X, Y)
+    assert isclose(res.statistic, 2.09, atol=1e-2)
+    assert isclose(res.pvalue, 0.044, atol=1e-3)
+    centre = mean(X) - mean(Y)
+    n_x, n_y = len(X), len(Y)
+    v_x, v_y = var(X, ddof=1), var(Y, ddof=1)
+    ddof = n_x + n_y - 2
+    alpha = 0.05
+    width = (
+        t.ppf(1.0 - alpha / 2.0, ddof)
+        * sqrt(
+            1.0 / n_x + 1 / n_y,
+        )
+        * sqrt(((n_x - 1) * v_x + (n_y - 1) * v_y) / ddof)
+    )
+    ci = (centre - width, centre + width)
+    assert isclose(ci, (0.06, 4.23), atol=1e-2).all()
