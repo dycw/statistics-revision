@@ -7,6 +7,7 @@ from numpy import sqrt
 from numpy import std
 from pandas import read_csv
 from pytest import skip
+from scipy.stats import binom_test
 from scipy.stats import f_oneway
 from scipy.stats import levene
 from scipy.stats import sem
@@ -14,6 +15,7 @@ from scipy.stats import t
 from scipy.stats import ttest_1samp
 from scipy.stats import ttest_ind
 from scipy.stats import ttest_rel
+from statsmodels.stats.proportion import proportions_ztest
 
 from statistics_revision import CODE_ROOT
 from statistics_revision.hypothesis_testing_frost import ttest_ind_ci
@@ -177,3 +179,26 @@ def test_2_variance_test_p242() -> None:
     result = levene(X, Y)
     assert isclose(result.statistic, 27.04, atol=1e-2)
     assert isclose(result.pvalue, 0.0, atol=1e-3)
+
+
+def test_1_proportion_test_p282() -> None:
+    pvalue = binom_test(80, n=100, p=0.7)
+    assert isclose(pvalue, 0.029, atol=1e-3)
+
+
+def test_2_proportions_test_p285() -> None:
+    statistic, pvalue = proportions_ztest([8, 19], 130)
+    assert isclose(statistic, -2.26, atol=1e-1)
+    assert isclose(pvalue, 0.024, atol=1e-2)
+
+
+def test_2_proportions_test_p295() -> None:
+    statistic, pvalue = proportions_ztest([49, 74], [5103, 2549])
+    assert isclose(statistic, -5.40, atol=1e-0)
+    assert isclose(pvalue, 0.0, atol=1e-3)
+
+
+def test_2_proportions_test_p296() -> None:
+    statistic, pvalue = proportions_ztest([28, 35], [816, 325])
+    assert isclose(statistic, -3.99, atol=1e-0)
+    assert isclose(pvalue, 0.0, atol=1e-3)
