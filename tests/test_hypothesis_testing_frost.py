@@ -81,3 +81,12 @@ def test_two_sample_t_ttest_and_ci_p66() -> None:
     assert isclose(res.statistic, 2.09, atol=1e-2)
     assert isclose(res.pvalue, 0.044, atol=1e-3)
     assert isclose(ttest_ind_ci(X, Y), (0.06, 4.23), atol=1e-2).all()
+
+
+def test_1_sample_t_test_statistic_p70() -> None:
+    path = BOOK_ROOT.joinpath("FuelsCosts.csv")
+    df = read_csv(path)
+    X = df["Fuel Cost"]
+    stat_1 = ttest_1samp(X, 60).statistic
+    stat_2 = (mean(X) - 60) / (std(X, ddof=1) / sqrt(len(X)))
+    assert isclose(stat_1, stat_2)
