@@ -90,3 +90,20 @@ def test_1_sample_t_test_statistic_p70() -> None:
     stat_1 = ttest_1samp(X, 60).statistic
     stat_2 = (mean(X) - 60) / (std(X, ddof=1) / sqrt(len(X)))
     assert isclose(stat_1, stat_2)
+
+
+def test_good_side_of_high_p_values_p97() -> None:
+    path = BOOK_ROOT.joinpath("studies.csv")
+    df = read_csv(path)
+    df_1 = df[["S1 Method A", "S1 Method B"]].dropna()
+    sr_1A, sr_1B = df_1["S1 Method A"], df_1["S1 Method B"]
+    assert isclose(mean(sr_1A - sr_1B), 6.01, atol=1e-2)
+    assert isclose(ttest_ind(sr_1A, sr_1B).pvalue, 0.12, atol=1e-2)
+    df_2 = df[["S2 Method A", "S2 Method B"]].dropna()
+    sr_2A, sr_2B = df_2["S2 Method A"], df_2["S2 Method B"]
+    assert isclose(mean(sr_2A - sr_2B), 9.97, atol=1e-2)
+    assert isclose(ttest_ind(sr_2A, sr_2B).pvalue, 0.14, atol=1e-2)
+    df_3 = df[["S3 Method A", "S3 Method B"]].dropna()
+    sr_3A, sr_3B = df_3["S3 Method A"], df_3["S3 Method B"]
+    assert isclose(mean(sr_3A - sr_3B), 1.94, atol=1e-2)
+    assert isclose(ttest_ind(sr_3A, sr_3B).pvalue, 0.042, atol=1e-3)
