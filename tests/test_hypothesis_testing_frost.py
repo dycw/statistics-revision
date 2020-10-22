@@ -8,6 +8,7 @@ from numpy import std
 from pandas import read_csv
 from pytest import skip
 from scipy.stats import f_oneway
+from scipy.stats import levene
 from scipy.stats import sem
 from scipy.stats import t
 from scipy.stats import ttest_1samp
@@ -171,5 +172,8 @@ def test_1_variance_test_p239() -> None:
 
 def test_2_variance_test_p242() -> None:
     path = BOOK_ROOT.joinpath("VariancesTest.csv")
-    _ = read_csv(path)
-    skip()
+    df = read_csv(path)
+    X, Y = (col for _, col in df.items())
+    result = levene(X, Y)
+    assert isclose(result.statistic, 27.04, atol=1e-2)
+    assert isclose(result.pvalue, 0.0, atol=1e-3)
