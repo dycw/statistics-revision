@@ -11,7 +11,6 @@ from scipy.stats import t
 from scipy.stats import ttest_1samp
 from scipy.stats import ttest_ind
 from scipy.stats import ttest_rel
-from statsmodels.stats.weightstats import DescrStatsW
 
 from statistics_revision import CODE_ROOT
 
@@ -36,16 +35,15 @@ def test_1_sample_t_test_example_p47() -> None:
     res = ttest_1samp(X, 60)
     assert isclose(res.statistic, 1.42, atol=1e-2)
     assert isclose(res.pvalue, 0.178, atol=1e-3)
-    assert (n := len(X)) == 15
     assert isclose(mu := mean(X), 64.16, atol=1e-2)
     assert isclose(sem_ := sem(X), 2.93, atol=1e-2)
-    confidence = 0.95
-    width = sem_ * t.ppf((1.0 + confidence) / 2, n - 1)
-    ci_1 = mu - width, mu + width
-    ci_2 = t.interval(confidence, n - 1, loc=mu, scale=sem_)
-    ci_3 = DescrStatsW(X).tconfint_mean()
-    for ci in (ci_1, ci_2, ci_3):
-        assert isclose(ci, (57.87, 70.45), atol=1e-2).all()
+    n = len(X)
+    ddof = n - 1
+    assert isclose(sem_, std(X, ddof=1) / sqrt(n))
+    alpha = 0.05
+    width = t.ppf(1.0 - alpha / 2.0, ddof) * sem_
+    ci = (mu - width, mu + width)
+    assert isclose(ci, (57.87, 70.45), atol=1e-2).all()
 
 
 def test_2_sample_t_test_example_p51() -> None:
@@ -60,15 +58,19 @@ def test_2_sample_t_test_example_p51() -> None:
     n_x, n_y = len(X), len(Y)
     v_x, v_y = var(X, ddof=1), var(Y, ddof=1)
     ddof = n_x + n_y - 2
-    s = sqrt(((n_x - 1) * v_x + (n_y - 1) * v_y) / ddof)
     alpha = 0.05
-    t_crit = t.ppf(1.0 - alpha / 2.0, ddof)  # t-critical value for 95% CI
-    width = t_crit * sqrt(1.0 / n_x + 1 / n_y) * s
+    width = (
+        t.ppf(1.0 - alpha / 2.0, ddof)
+        * sqrt(
+            1.0 / n_x + 1 / n_y,
+        )
+        * sqrt(((n_x - 1) * v_x + (n_y - 1) * v_y) / ddof)
+    )
     ci = (centre - width, centre + width)
     assert isclose(ci, (-19.89, -6.59), atol=1e-2).all()
 
 
-def test_paired_t_test_example_p51() -> None:
+def test_paired_t_test_example_p55() -> None:
     path = BOOK_ROOT.joinpath("t-TestExamples.csv")
     df = read_csv(path)
     X = df["Pretest"]
@@ -78,9 +80,7 @@ def test_paired_t_test_example_p51() -> None:
     assert isclose(res.pvalue, 0.002, atol=1e-3)
     centre = mean(X) - mean(Y)
     n = len(X)
-    ddof = n - 1
     alpha = 0.05
-    t_crit = t.ppf(1.0 - alpha / 2.0, ddof)  # t-critical value for 95% CI
-    width = t_crit * std(X - Y, ddof=1) / sqrt(n)
+    width = t.ppf(1.0 - alpha / 2.0, n - 1) * std(X - Y, ddof=1) / sqrt(n)
     ci = (centre - width, centre + width)
     assert isclose(ci, (-16.96, -4.59), atol=1e-2).all()
