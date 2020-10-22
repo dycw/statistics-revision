@@ -113,12 +113,20 @@ def test_good_side_of_high_p_values_p97() -> None:
 def test_one_way_anova_p200() -> None:
     path = BOOK_ROOT.joinpath("OneWayExample.csv")
     df = read_csv(path)
-    df = df.assign(n=df.index % 10).pivot(
+    df_2 = df.assign(n=df.index % 10).pivot(
         index="n",
         columns="Sample",
         values="Strength",
     )
-    a, b, c, d = (col for _, col in df.items())
+    a, b, c, d = (col for _, col in df_2.items())
     result = f_oneway(a, b, c, d)
     assert isclose(result.statistic, 3.30, atol=1e-2)
     assert isclose(result.pvalue, 0.031, atol=1e-3)
+
+    result = df.anova(dv="Strength", between="Sample", detailed=True)
+    assert isclose(result.loc[0, "SS"], 43.62, atol=1e-2)
+    assert isclose(result.loc[0, "MS"], 14.540, atol=1e-3)
+    assert isclose(result.loc[0, "F"], 3.30, atol=1e-2)
+    assert isclose(result.loc[0, "p-unc"], 0.031, atol=1e-3)
+    assert isclose(result.loc[0, "np2"], 0.2158, atol=1e-4)
+    assert isclose(result.loc[1, "SS"], 158.47, atol=1e-2)
