@@ -5,6 +5,7 @@ from numpy import mean
 from numpy import sqrt
 from numpy import std
 from pandas import read_csv
+from scipy.stats import f_oneway
 from scipy.stats import sem
 from scipy.stats import t
 from scipy.stats import ttest_1samp
@@ -107,3 +108,17 @@ def test_good_side_of_high_p_values_p97() -> None:
     sr_3A, sr_3B = df_3["S3 Method A"], df_3["S3 Method B"]
     assert isclose(mean(sr_3A - sr_3B), 1.94, atol=1e-2)
     assert isclose(ttest_ind(sr_3A, sr_3B).pvalue, 0.042, atol=1e-3)
+
+
+def test_one_way_anova_p200() -> None:
+    path = BOOK_ROOT.joinpath("OneWayExample.csv")
+    df = read_csv(path)
+    df = df.assign(n=df.index % 10).pivot(
+        index="n",
+        columns="Sample",
+        values="Strength",
+    )
+    a, b, c, d = (col for _, col in df.items())
+    result = f_oneway(a, b, c, d)
+    assert isclose(result.statistic, 3.30, atol=1e-2)
+    assert isclose(result.pvalue, 0.031, atol=1e-3)
