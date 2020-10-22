@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pingouin  # noqa: F401
 from numpy import isclose
 from numpy import mean
 from numpy import sqrt
@@ -124,9 +125,38 @@ def test_one_way_anova_p200() -> None:
     assert isclose(result.pvalue, 0.031, atol=1e-3)
 
     result = df.anova(dv="Strength", between="Sample", detailed=True)
+    assert result.loc[0, "Source"] == "Sample"
     assert isclose(result.loc[0, "SS"], 43.62, atol=1e-2)
+    assert result.loc[0, "DF"] == 3
     assert isclose(result.loc[0, "MS"], 14.540, atol=1e-3)
     assert isclose(result.loc[0, "F"], 3.30, atol=1e-2)
     assert isclose(result.loc[0, "p-unc"], 0.031, atol=1e-3)
     assert isclose(result.loc[0, "np2"], 0.2158, atol=1e-4)
+    assert result.loc[1, "Source"] == "Within"
     assert isclose(result.loc[1, "SS"], 158.47, atol=1e-2)
+    assert result.loc[1, "DF"] == 36
+    assert isclose(result.loc[1, "MS"], 4.402, atol=1e-3)
+
+
+def test_two_way_anova_p227() -> None:
+    path = BOOK_ROOT.joinpath("Two-WayANOVAExamples.csv")
+    df = read_csv(path)
+    result = df.anova(dv="Income", between=["Gender", "Major"], detailed=True)
+    assert result.loc[0, "Source"] == "Gender"
+    assert isclose(result.loc[0, "SS"], 593002242)
+    assert result.loc[0, "DF"] == 1
+    assert isclose(result.loc[0, "F"], 25.80, atol=1e-2)
+    assert isclose(result.loc[0, "p-unc"], 0.0, atol=1e-3)
+    assert result.loc[1, "Source"] == "Major"
+    assert isclose(result.loc[1, "SS"], 6009140932)
+    assert result.loc[1, "DF"] == 2
+    assert isclose(result.loc[1, "F"], 130.70, atol=1e-2)
+    assert isclose(result.loc[1, "p-unc"], 0.0, atol=1e-3)
+    assert result.loc[2, "Source"] == "Gender * Major"
+    assert isclose(result.loc[2, "SS"], 88232238)
+    assert result.loc[2, "DF"] == 2
+    assert isclose(result.loc[2, "F"], 1.92, atol=1e-2)
+    assert isclose(result.loc[2, "p-unc"], 0.151, atol=1e-3)
+    assert result.loc[3, "Source"] == "Residual"
+    assert isclose(result.loc[3, "SS"], 2620748173)
+    assert result.loc[3, "DF"] == 114
