@@ -5,7 +5,7 @@ from pathlib import Path
 from git import Repo
 
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 CODE_ROOT = Path(
