@@ -10,6 +10,7 @@ from scipy.stats import sem
 from scipy.stats import t
 from scipy.stats import ttest_1samp
 from scipy.stats import ttest_ind
+from scipy.stats import ttest_rel
 from statsmodels.stats.weightstats import DescrStatsW
 
 from statistics_revision import CODE_ROOT
@@ -58,10 +59,28 @@ def test_2_sample_t_test_example_p51() -> None:
     centre = mean(X) - mean(Y)
     n_x, n_y = len(X), len(Y)
     v_x, v_y = var(X, ddof=1), var(Y, ddof=1)
-    ddof = n_x + n_y - 2  # degrees of freedom
+    ddof = n_x + n_y - 2
     s = sqrt(((n_x - 1) * v_x + (n_y - 1) * v_y) / ddof)
     alpha = 0.05
     t_crit = t.ppf(1.0 - alpha / 2.0, ddof)  # t-critical value for 95% CI
     width = t_crit * sqrt(1.0 / n_x + 1 / n_y) * s
     ci = (centre - width, centre + width)
     assert isclose(ci, (-19.89, -6.59), atol=1e-2).all()
+
+
+def test_paired_t_test_example_p51() -> None:
+    path = BOOK_ROOT.joinpath("t-TestExamples.csv")
+    df = read_csv(path)
+    X = df["Pretest"]
+    Y = df["Posttest"]
+    res = ttest_rel(X, Y)
+    assert isclose(res.statistic, -3.73, atol=1e-2)
+    assert isclose(res.pvalue, 0.002, atol=1e-3)
+    centre = mean(X) - mean(Y)
+    n = len(X)
+    ddof = n - 1
+    alpha = 0.05
+    t_crit = t.ppf(1.0 - alpha / 2.0, ddof)  # t-critical value for 95% CI
+    width = t_crit * std(X - Y, ddof=1) / sqrt(n)
+    ci = (centre - width, centre + width)
+    assert isclose(ci, (-16.96, -4.59), atol=1e-2).all()
