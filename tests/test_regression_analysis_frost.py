@@ -1,14 +1,22 @@
 from __future__ import annotations
 
+from typing import Union
+
 from holoviews import Curve
 from holoviews import Overlay
 from holoviews import Scatter
 from holoviews import Slope
+from numpy import array
+from numpy import concatenate
+from numpy import dot
 from numpy import isclose
 from numpy import linspace
+from numpy import ndarray
+from numpy import zeros
 from pandas import DataFrame
 from pandas import read_csv
 from pandas import Series
+from scipy.optimize import least_squares
 from scipy.stats import pearsonr
 from statsmodels.iolib.summary import Summary
 from statsmodels.regression.linear_model import OLS
@@ -93,10 +101,45 @@ def test_regression_model_curvature_plot_p96() -> None:
 
     X, Y = df["Input"], df["Output"]
     model = OLS(Y, build_X(X)).fit()
+    params = model.params
+    assert isclose(params.loc["const"], 3.241, atol=1e-3)
+    assert isclose(params.loc["Input"], 3.564, atol=1e-3)
+    assert isclose(params.loc["Input^2"], -0.1915, atol=1e-4)
     build_X(df["Input"])
     scatter = Scatter((X, Y))
     X_pred = Series(linspace(X.min(), X.max()))
     Y_pred = model.predict(build_X(X_pred))
-    curve = Curve((X_pred, Y_pred))
+    curve = Curve((X_pred, Y_pred)).opts(color="orange")
     plot = scatter * curve
     assert isinstance(plot, Overlay)
+
+
+def test_non_linear_regression_p108() -> None:
+    path = _BOOK_ROOT.joinpath("ElectronMobility.csv")
+    df = read_csv(path)
+
+    def model(beta: ndarray, X: Union[float, Series]) -> Union[float, Series]:
+        assert len(beta) == 7
+        poly = array([1.0, X, X ** 2, X ** 3])
+        return dot(beta[:4], poly) / dot(concatenate([[1.0], beta[-3:]]), poly)
+
+    def target(beta: ndarray, X: float, y: float) -> float:
+        return abs(model(beta, X) - y)
+
+    beta_0 = zeros(7)
+    X, Y = df["Density Ln"], df["Mobility"]
+    result = least_squares(target, beta_0, args=(X, Y))
+    assert result.success
+    assert isclose(
+        result.x,
+        [
+            1289.27,
+            1717.88,
+            747.22,
+            108.12,
+            1.12,
+            0.48,
+            0.09,
+        ],
+        atol=1e-2,
+    ).all()
