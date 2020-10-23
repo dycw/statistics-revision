@@ -20,6 +20,7 @@ from scipy.optimize import least_squares
 from scipy.stats import pearsonr
 from statsmodels.iolib.summary import Summary
 from statsmodels.regression.linear_model import OLS
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tools import add_constant
 
 from statistics_revision import CODE_ROOT
@@ -120,7 +121,7 @@ def test_non_linear_regression_p108() -> None:
 
     def model(beta: ndarray, X: Union[float, Series]) -> Union[float, Series]:
         assert len(beta) == 7
-        poly = array([1.0, X, X ** 2, X ** 3])
+        poly = array([1.0, X, X ** 2, X ** 3], dtype=object)
         return dot(beta[:4], poly) / dot(concatenate([[1.0], beta[-3:]]), poly)
 
     def target(beta: ndarray, X: float, y: float) -> float:
@@ -143,3 +144,23 @@ def test_non_linear_regression_p108() -> None:
         ],
         atol=1e-2,
     ).all()
+
+
+def test_variance_inflation_factor_p225() -> None:
+    path = _BOOK_ROOT.joinpath("MulticollinearityExample.csv")
+    df = read_csv(path)
+    X = add_constant(df[["%Fat", "Weight kg", "Activity"]])
+    X["%Fat*Weight kg"] = X["%Fat"] * X["Weight kg"]
+    Y = df["Femoral Neck"]
+    model = OLS(Y, X).fit()
+    params = model.params
+    assert isclose(params.loc["const"], 0.155, atol=1e-3)
+    assert isclose(params.loc["%Fat"], 0.005577, atol=1e-5)
+    assert isclose(params.loc["Weight kg"], 0.01447, atol=1e-5)
+    assert isclose(params.loc["Activity"], 0.000022, atol=1e-6)
+    assert isclose(params.loc["%Fat*Weight kg"], -0.000214, atol=1e-6)
+    X_array = X.to_numpy()
+    assert isclose(variance_inflation_factor(X_array, 1), 14.93, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 2), 33.95, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 3), 1.05, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 4), 75.06, atol=1e-2)
