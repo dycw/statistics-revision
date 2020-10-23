@@ -24,7 +24,22 @@ def test_correlation_p16() -> None:
     assert isclose(corr, 0.705, atol=1e-1)
 
 
-def test_regression_model_and_plot_p43() -> None:
+def test_regression_model_plot_p43() -> None:
+    path = _BOOK_ROOT.joinpath("HeightWeight.csv")
+    df = add_constant(read_csv(path))
+    X, Y = df[["const", "Height M"]], df["Weight kg"]
+    model = OLS(Y, X).fit()
+    X = df["Height M"]
+    scatter = Scatter((X, Y)).opts(size=10)
+    slope = Slope(
+        slope=model.params.loc["Height M"],
+        y_intercept=model.params.loc["const"],
+    ).opts(color="orange")
+    plot = scatter * slope
+    assert isinstance(plot, Overlay)
+
+
+def test_regression_model_values_p52() -> None:
     path = _BOOK_ROOT.joinpath("HeightWeight.csv")
     df = add_constant(read_csv(path))
     X, Y = df[["const", "Height M"]], df["Weight kg"]
@@ -38,11 +53,3 @@ def test_regression_model_and_plot_p43() -> None:
     assert isclose(model.bse.loc["Height M"], 11.5500, atol=1e-4)
     assert isclose(model.tvalues.loc["Height M"], 9.221177, atol=1e-5)
     assert isclose(model.pvalues.loc["Height M"], 0.0, atol=1e-3)
-    X = df["Height M"]
-    scatter = Scatter((X, Y)).opts(size=10)
-    slope = Slope(
-        slope=model.params.loc["Height M"],
-        y_intercept=model.params.loc["const"],
-    ).opts(color="orange")
-    plot = scatter * slope
-    assert isinstance(plot, Overlay)
