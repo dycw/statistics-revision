@@ -130,7 +130,7 @@ def test_non_linear_regression_p108() -> None:
 
     beta_0 = zeros(7)
     X, Y = df["Density Ln"], df["Mobility"]
-    result = least_squares(target, beta_0, args=(X, Y))
+    result = least_squares(target, beta_0, args=(X, Y), diff_step=1e-10)
     assert result.success
     assert isclose(
         result.x,
