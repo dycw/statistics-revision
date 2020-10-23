@@ -20,11 +20,12 @@ from statsmodels.stats.proportion import proportions_ztest
 from statistics_revision import CODE_ROOT
 from statistics_revision.hypothesis_testing_frost import ttest_ind_ci
 
-BOOK_ROOT = CODE_ROOT.joinpath("hypothesis_testing_frost")
+
+_BOOK_ROOT = CODE_ROOT.joinpath("hypothesis_testing_frost")
 
 
 def test_descriptive_statistics_fuel_cost_p28() -> None:
-    path = BOOK_ROOT.joinpath("FuelsCosts.csv")
+    path = _BOOK_ROOT.joinpath("FuelsCosts.csv")
     df = read_csv(path)
     X = df["Fuel Cost"]
     assert len(X) == 25
@@ -34,7 +35,7 @@ def test_descriptive_statistics_fuel_cost_p28() -> None:
 
 
 def test_1_sample_t_test_example_p47() -> None:
-    path = BOOK_ROOT.joinpath("AssessmentScores.csv")
+    path = _BOOK_ROOT.joinpath("AssessmentScores.csv")
     df = read_csv(path)
     X = df["Score"]
     res = ttest_1samp(X, 60)
@@ -52,7 +53,7 @@ def test_1_sample_t_test_example_p47() -> None:
 
 
 def test_2_sample_t_test_example_p51() -> None:
-    path = BOOK_ROOT.joinpath("t-TestExamples.csv")
+    path = _BOOK_ROOT.joinpath("t-TestExamples.csv")
     df = read_csv(path)
     X = df["Method A"]
     Y = df["Method B"]
@@ -63,7 +64,7 @@ def test_2_sample_t_test_example_p51() -> None:
 
 
 def test_paired_t_test_example_p55() -> None:
-    path = BOOK_ROOT.joinpath("t-TestExamples.csv")
+    path = _BOOK_ROOT.joinpath("t-TestExamples.csv")
     df = read_csv(path)
     X = df["Pretest"]
     Y = df["Posttest"]
@@ -79,7 +80,7 @@ def test_paired_t_test_example_p55() -> None:
 
 
 def test_two_sample_t_ttest_and_ci_p66() -> None:
-    path = BOOK_ROOT.joinpath("DifferenceMeans.csv")
+    path = _BOOK_ROOT.joinpath("DifferenceMeans.csv")
     df = read_csv(path)
     X = df["Strength B"]
     Y = df["Strength A"]
@@ -90,7 +91,7 @@ def test_two_sample_t_ttest_and_ci_p66() -> None:
 
 
 def test_1_sample_t_test_statistic_p70() -> None:
-    path = BOOK_ROOT.joinpath("FuelsCosts.csv")
+    path = _BOOK_ROOT.joinpath("FuelsCosts.csv")
     df = read_csv(path)
     X = df["Fuel Cost"]
     stat_1 = ttest_1samp(X, 60).statistic
@@ -99,7 +100,7 @@ def test_1_sample_t_test_statistic_p70() -> None:
 
 
 def test_good_side_of_high_p_values_p97() -> None:
-    path = BOOK_ROOT.joinpath("studies.csv")
+    path = _BOOK_ROOT.joinpath("studies.csv")
     df = read_csv(path)
     df_1 = df[["S1 Method A", "S1 Method B"]].dropna()
     sr_1A, sr_1B = df_1["S1 Method A"], df_1["S1 Method B"]
@@ -116,7 +117,7 @@ def test_good_side_of_high_p_values_p97() -> None:
 
 
 def test_1_way_anova_p200() -> None:
-    path = BOOK_ROOT.joinpath("OneWayExample.csv")
+    path = _BOOK_ROOT.joinpath("OneWayExample.csv")
     df = read_csv(path)
     df_2 = df.assign(n=df.index % 10).pivot(
         index="n",
@@ -143,7 +144,7 @@ def test_1_way_anova_p200() -> None:
 
 
 def test_2_way_anova_p227() -> None:
-    path = BOOK_ROOT.joinpath("Two-WayANOVAExamples.csv")
+    path = _BOOK_ROOT.joinpath("Two-WayANOVAExamples.csv")
     df = read_csv(path)
     result = df.anova(dv="Income", between=["Gender", "Major"], detailed=True)
     assert result.loc[0, "Source"] == "Gender"
@@ -167,13 +168,13 @@ def test_2_way_anova_p227() -> None:
 
 
 def test_1_variance_test_p239() -> None:
-    path = BOOK_ROOT.joinpath("ProductStrength.csv")
+    path = _BOOK_ROOT.joinpath("ProductStrength.csv")
     _ = read_csv(path)
     skip()
 
 
 def test_2_variance_test_p242() -> None:
-    path = BOOK_ROOT.joinpath("VariancesTest.csv")
+    path = _BOOK_ROOT.joinpath("VariancesTest.csv")
     df = read_csv(path)
     X, Y = (col for _, col in df.items())
     result = levene(X, Y)
