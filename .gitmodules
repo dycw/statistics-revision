@@ -1,0 +1,3 @@
+[submodule "statistics_revision/bayesian_analysis_with_python_martin"]
+	path = statistics_revision/bayesian_analysis_with_python_martin
+	url = git@github.com:aloctavodia/BAP.git
