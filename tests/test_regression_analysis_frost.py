@@ -27,9 +27,8 @@ def test_correlation_p16() -> None:
 def test_regression_model_plot_p43() -> None:
     path = _BOOK_ROOT.joinpath("HeightWeight.csv")
     df = add_constant(read_csv(path))
-    X, Y = df[["const", "Height M"]], df["Weight kg"]
-    model = OLS(Y, X).fit()
-    X = df["Height M"]
+    X, Y = df[["Height M"]], df["Weight kg"]
+    model = OLS(Y, add_constant(X)).fit()
     scatter = Scatter((X, Y)).opts(size=10)
     params = model.params
     slope = Slope(
@@ -42,8 +41,9 @@ def test_regression_model_plot_p43() -> None:
 
 def test_regression_model_values_p52() -> None:
     path = _BOOK_ROOT.joinpath("HeightWeight.csv")
-    df = add_constant(read_csv(path))
-    X, Y = df[["const", "Height M"]], df["Weight kg"]
+    df = read_csv(path)
+    X = add_constant(df[["Height M"]])
+    Y = df["Weight kg"]
     model = OLS(Y, X).fit()
     assert isinstance(model.summary(), Summary)
     params = model.params
@@ -63,3 +63,18 @@ def test_regression_model_values_p52() -> None:
     assert isclose(ci.loc["const", 1], -79.7, atol=1e-1)
     assert isclose(ci.loc["Height M", 0], 83.5, atol=1e-1)
     assert isclose(ci.loc["Height M", 1], 129.5, atol=1e-1)
+
+
+def test_regression_model_curvature_p86() -> None:
+    path = _BOOK_ROOT.joinpath("Hardness.csv")
+    df = read_csv(path)
+    X = add_constant(df[["Temp", "Pressure"]])
+    X["Pressure*Pressure"] = X["Pressure"] ** 2
+    Y = df["Hardness"]
+    model = OLS(Y, X).fit()
+    assert isinstance(model.summary(), Summary)
+    params = model.params
+    assert isclose(params.loc["const"], -38.8, atol=1e-1)
+    assert isclose(params.loc["Temp"], 0.759, atol=1e-3)
+    assert isclose(params.loc["Pressure"], -1.6, atol=1e-2)
+    assert isclose(params.loc["Pressure*Pressure"], 0.1657, atol=1e-4)
