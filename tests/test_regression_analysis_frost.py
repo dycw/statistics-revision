@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from holoviews import Curve
 from holoviews import Overlay
 from holoviews import Scatter
 from holoviews import Slope
 from numpy import isclose
+from numpy import linspace
+from pandas import DataFrame
 from pandas import read_csv
+from pandas import Series
 from scipy.stats import pearsonr
 from statsmodels.iolib.summary import Summary
 from statsmodels.regression.linear_model import OLS
@@ -71,10 +75,28 @@ def test_regression_model_curvature_p86() -> None:
     X = add_constant(df[["Temp", "Pressure"]])
     X["Pressure*Pressure"] = X["Pressure"] ** 2
     Y = df["Hardness"]
-    model = OLS(Y, X).fit()
-    assert isinstance(model.summary(), Summary)
-    params = model.params
+    params = OLS(Y, X).fit().params
     assert isclose(params.loc["const"], -38.8, atol=1e-1)
     assert isclose(params.loc["Temp"], 0.759, atol=1e-3)
     assert isclose(params.loc["Pressure"], -1.6, atol=1e-2)
     assert isclose(params.loc["Pressure*Pressure"], 0.1657, atol=1e-4)
+
+
+def test_regression_model_curvature_plot_p96() -> None:
+    path = _BOOK_ROOT.joinpath("CurveFittingExample.csv")
+    df = read_csv(path)
+
+    def build_X(series: Series) -> DataFrame:
+        X = add_constant(series.rename("Input"))
+        X["Input^2"] = X["Input"] ** 2
+        return X
+
+    X, Y = df["Input"], df["Output"]
+    model = OLS(Y, build_X(X)).fit()
+    build_X(df["Input"])
+    scatter = Scatter((X, Y))
+    X_pred = Series(linspace(X.min(), X.max()))
+    Y_pred = model.predict(build_X(X_pred))
+    curve = Curve((X_pred, Y_pred))
+    plot = scatter * curve
+    assert isinstance(plot, Overlay)
