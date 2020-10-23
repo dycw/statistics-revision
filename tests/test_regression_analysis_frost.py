@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Tuple
 from typing import Union
 
 from holoviews import Curve
@@ -149,9 +150,14 @@ def test_non_linear_regression_p108() -> None:
 def test_variance_inflation_factor_p225() -> None:
     path = _BOOK_ROOT.joinpath("MulticollinearityExample.csv")
     df = read_csv(path)
-    X = add_constant(df[["%Fat", "Weight kg", "Activity"]])
-    X["%Fat*Weight kg"] = X["%Fat"] * X["Weight kg"]
-    Y = df["Femoral Neck"]
+
+    def build_X_Y(df: DataFrame) -> Tuple[DataFrame, Series]:
+        X = add_constant(df[["%Fat", "Weight kg", "Activity"]])
+        X["%Fat*Weight kg"] = X["%Fat"] * X["Weight kg"]
+        Y = df["Femoral Neck"]
+        return X, Y
+
+    X, Y = build_X_Y(df)
     model = OLS(Y, X).fit()
     params = model.params
     assert isclose(params.loc["const"], 0.155, atol=1e-3)
@@ -164,3 +170,11 @@ def test_variance_inflation_factor_p225() -> None:
     assert isclose(variance_inflation_factor(X_array, 2), 33.95, atol=1e-2)
     assert isclose(variance_inflation_factor(X_array, 3), 1.05, atol=1e-2)
     assert isclose(variance_inflation_factor(X_array, 4), 75.06, atol=1e-2)
+
+    centered = df.sub(df.mean(axis=0), axis=1)
+    X, _ = build_X_Y(centered)
+    X_array = X.to_numpy()
+    assert isclose(variance_inflation_factor(X_array, 1), 3.32, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 2), 4.75, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 3), 1.05, atol=1e-2)
+    assert isclose(variance_inflation_factor(X_array, 4), 1.99, atol=1e-2)
